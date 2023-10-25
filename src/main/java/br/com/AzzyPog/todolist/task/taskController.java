@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException.BadRequest;
 
+import br.com.AzzyPog.todolist.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
@@ -60,6 +61,18 @@ public class taskController {
 
     @PutMapping("/{taskId}")
     public ResponseEntity update(@RequestBody taskModel taskModel, @PathVariable UUID taskId, HttpServletRequest request) {
-        return ResponseEntity.status();
+        var task = this.taskRepository.findById(taskId).orElse(null);
+        var idUser = request.getAttribute("idUser");
+        if(task == null) {
+            return ResponseEntity.status(400).body("Tarefa não encontrada.");
+        }
+        
+        if(!task.getIdUser().equals(idUser)) {
+            return ResponseEntity.status(400).body("Usuário não tem permissão para editar essa tarefa.");
+        }
+
+        Utils.copyNonNullProperties(taskModel, task);
+
+        return ResponseEntity.status(200).body(task);
     }
 }
