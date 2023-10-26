@@ -29,17 +29,15 @@ public class filterTaskAuth extends OncePerRequestFilter {
             throws ServletException, IOException {
 
                 var route = request.getServletPath();
+                var method = request.getMethod();
 
-                if(route.startsWith("/tasks/")) {
-
+                if(route.startsWith("/tasks/") || (route.startsWith("/users/") && method.equals("DELETE"))) {
                     //pegando a autenticação do usuário
                     var Auth = request.getHeader("Authorization");
                     Auth = Auth.substring(5).trim();
-                    //System.out.println(Auth);
-
+        
                     byte[] authDecoded = Base64.getDecoder().decode(Auth);
                     var authTranslate = new String(authDecoded);
-                    //System.out.println(authTranslate);
 
                     String username = authTranslate.split(":")[0];
                     String password = authTranslate.split(":")[1];
@@ -52,7 +50,7 @@ public class filterTaskAuth extends OncePerRequestFilter {
                     var verifyPassword = BCrypt.verifyer().verify(password.toCharArray(), user.getPassword());
 
                     if(verifyPassword.verified){
-                        //enviando o idUser pelo request para ser setado na task
+                        //enviando o idUser pelo request para ser setado na task e no delete do usuário
                         request.setAttribute("idUser", user.getId());
                         //continue a requisição
                         filterChain.doFilter(request, response);
